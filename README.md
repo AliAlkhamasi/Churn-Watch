@@ -30,15 +30,15 @@ Runs separately as a batch analysis. Scans all analyzed customers in Redis, comp
 ## Architecture
 
 ```
-Frontend (React + TypeScript + Vite)
+Frontend (React + TypeScript + Vite)              [Static Web Apps]
     |
-FastAPI server (async, SSE streaming)
+FastAPI server (async, SSE streaming)             [Container Apps]
     |
-Redis (customer profiles + analysis results)
+Redis (customer profiles + analysis results)      [Azure Cache for Redis]
     |
 Python risk scoring (deterministic, no LLM)
     |
-Claude Haiku 4.5 (Agents 2, 3, 4, 5)
+Claude Haiku 4.5 (Agents 2, 3, 4, 5)              [API key from Key Vault]
 ```
 
 ## Stack
@@ -51,6 +51,8 @@ Claude Haiku 4.5 (Agents 2, 3, 4, 5)
 | LLM | Claude Haiku 4.5 via Anthropic SDK (AsyncAnthropic) |
 | Streaming | Server-Sent Events (SSE) for batch progress |
 | Dataset | WA_Fn-UseC_-Telco-Customer-Churn (Kaggle) |
+| Cloud | Azure — Container Apps, Static Web Apps, Cache for Redis, Key Vault, Container Registry |
+| CI/CD | GitHub Actions — backend (Docker → ACR → Container App), frontend (SWA build) |
 
 ## Features
 
@@ -88,4 +90,16 @@ npm run dev                  # starts on http://localhost:5173
 ```
 
 Open `http://localhost:5173`.
-````
+
+## Deployment
+
+Deployed to Azure with managed services and CI/CD:
+
+- **Backend** — FastAPI on Container Apps, managed identity pulls Anthropic API key from Key Vault at startup
+- **Frontend** — Vite build on Static Web Apps, `VITE_API_BASE` injected at build time
+- **Cache** — Azure Cache for Redis (TLS, connection string as Container App secret)
+- **CI/CD** — GitHub Actions builds Docker image, pushes to ACR, updates Container App on `backend/**` push; Static Web Apps pipeline handles frontend
+
+![ChurnWatch](images/az.png)
+
+Infra is currently torn down to free credits for the next project. Redeploy via the workflows in `.github/workflows/` after `az group create`.
