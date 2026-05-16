@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "../api";
+import { api, BASE } from "../api";
 import type { CustomerRow } from "../api";
 import { RiskBadge } from "./RiskBadge";
 
@@ -21,7 +21,6 @@ interface Props {
 }
 
 const PAGE_SIZE = 100;
-const BASE = "http://localhost:8000";
 
 interface BatchProgress {
   analyzed: number;

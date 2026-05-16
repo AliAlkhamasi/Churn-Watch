@@ -1,4 +1,4 @@
-const BASE = "http://localhost:8000";
+export const BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
 export interface RiskFactor {
   factor: string;

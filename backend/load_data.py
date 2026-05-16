@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "WA_Fn-UseC_-Telco-Customer-Churn.csv")
+CSV_PATH = os.path.join(os.path.dirname(__file__), "data", "WA_Fn-UseC_-Telco-Customer-Churn.csv")
 
 
 def to_snake_case(name: str) -> str:

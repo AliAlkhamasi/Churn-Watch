@@ -5,6 +5,8 @@ import os
 
 import json
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -21,11 +23,30 @@ from redis_client import (
 
 load_dotenv()
 
-app = FastAPI(title="Churn Prevention API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    existing = await get_all_customer_ids()
+    if not existing:
+        print("Redis is empty, loading customer data...")
+        from load_data import load
+        await load()
+        print("Data loaded.")
+    else:
+        print(f"Redis already has {len(existing)} customers, skipping load.")
+    yield
+
+
+app = FastAPI(title="Churn Prevention API", version="1.0.0", lifespan=lifespan)
+
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173"
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
